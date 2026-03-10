@@ -3,170 +3,343 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Financeiro Pro</title>
+    <title>Financeiro Premium</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        body { font-family: 'Outfit', sans-serif; background-color: #0b1120; color: #f1f5f9; }
+        .glass-panel { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .card-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
 
-    <div class="max-w-6xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
-            <div>
-                <h1 class="text-3xl font-bold text-emerald-400 flex items-center gap-2">
-                    <span class="p-2 bg-emerald-500/10 rounded-lg">💰</span> Meu Financeiro
-                </h1>
-                <p class="text-slate-400 text-sm mt-1">Sincronizado em tempo real com Planilhas Google</p>
+    <div class="max-w-7xl mx-auto">
+        
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6 glass-panel p-6 rounded-2xl">
+            <div class="flex items-center gap-4">
+                <div class="p-3 bg-indigo-500/20 text-indigo-400 rounded-xl">
+                    <i class="ph ph-wallet text-3xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400">
+                        Controle Financeiro
+                    </h1>
+                    <p class="text-slate-400 text-sm mt-1 flex items-center gap-2">
+                        <span id="status-dot" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        <span id="status-text">Conectando ao Google Sheets...</span>
+                    </p>
+                </div>
             </div>
-            <button onclick="buscarDados()" id="btnSync" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-emerald-900/20">
-                Atualizar Dados ↻
-            </button>
+
+            <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                <div class="relative w-full sm:w-48">
+                    <select id="filtroMes" onchange="atualizarDashboardParaMes(this.value)" class="w-full appearance-none bg-slate-800/80 border border-slate-700 text-slate-200 py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium cursor-pointer transition-colors">
+                        <option value="Todos">Visão Geral (Ano)</option>
+                        </select>
+                    <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                </div>
+                
+                <button onclick="buscarDados()" id="btnSync" class="group bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-900/30 w-full sm:w-auto">
+                    <i class="ph ph-arrows-clockwise text-xl group-hover:rotate-180 transition-transform duration-500"></i> Sincronizar
+                </button>
+            </div>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="glass p-6 rounded-2xl shadow-xl border-l-4 border-emerald-500">
-                <p class="text-slate-400 text-xs uppercase font-bold tracking-widest mb-1">Entradas</p>
-                <h2 id="totalEntradas" class="text-3xl font-black text-white">R$ 0,00</h2>
+            <div class="glass-panel p-6 rounded-2xl card-hover relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <i class="ph-fill ph-trend-up text-6xl text-emerald-500"></i>
+                </div>
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-slate-400 text-sm font-semibold tracking-wide uppercase">Entradas</p>
+                    <span class="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-lg"><i class="ph ph-arrow-up-right"></i></span>
+                </div>
+                <h2 id="totalEntradas" class="text-4xl font-bold text-slate-100">R$ 0,00</h2>
             </div>
-            <div class="glass p-6 rounded-2xl shadow-xl border-l-4 border-rose-500">
-                <p class="text-slate-400 text-xs uppercase font-bold tracking-widest mb-1">Saídas</p>
-                <h2 id="totalSaidas" class="text-3xl font-black text-rose-400">R$ 0,00</h2>
+
+            <div class="glass-panel p-6 rounded-2xl card-hover relative overflow-hidden group">
+                 <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <i class="ph-fill ph-trend-down text-6xl text-rose-500"></i>
+                </div>
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-slate-400 text-sm font-semibold tracking-wide uppercase">Saídas</p>
+                    <span class="p-1.5 bg-rose-500/10 text-rose-400 rounded-lg"><i class="ph ph-arrow-down-left"></i></span>
+                </div>
+                <h2 id="totalSaidas" class="text-4xl font-bold text-rose-400">R$ 0,00</h2>
             </div>
-            <div class="glass p-6 rounded-2xl shadow-xl border-l-4 border-blue-500 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
-                <p class="text-slate-400 text-xs uppercase font-bold tracking-widest mb-1">Saldo Atual</p>
-                <h2 id="saldoTotal" class="text-3xl font-black text-blue-400">R$ 0,00</h2>
+
+            <div class="glass-panel p-6 rounded-2xl card-hover relative overflow-hidden border-indigo-500/30 shadow-[0_0_30px_-10px_rgba(99,102,241,0.2)]">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-slate-300 text-sm font-semibold tracking-wide uppercase">Saldo Líquido</p>
+                    <span class="p-1.5 bg-indigo-500/20 text-indigo-400 rounded-lg"><i class="ph ph-coins"></i></span>
+                </div>
+                <h2 id="saldoTotal" class="text-4xl font-bold text-indigo-300">R$ 0,00</h2>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 glass rounded-2xl overflow-hidden shadow-2xl">
-                <div class="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800/30">
-                    <h3 class="font-bold">Extrato de Movimentações</h3>
-                    <span id="status" class="text-[10px] text-emerald-500 font-mono animate-pulse uppercase">Online</span>
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            
+            <div class="xl:col-span-2 glass-panel p-6 rounded-2xl flex flex-col">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-semibold text-lg flex items-center gap-2">
+                        <i class="ph ph-chart-bar text-indigo-400"></i> Evolução Mensal
+                    </h3>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-900/50 text-slate-500 text-[10px] uppercase font-bold">
-                            <tr>
-                                <th class="px-6 py-4">Data</th>
-                                <th class="px-6 py-4">Descrição / Categoria</th>
-                                <th class="px-6 py-4 text-right">Valor</th>
-                            </tr>
-                        </thead>
-                        <tbody id="corpoTabela" class="divide-y divide-slate-800">
-                            </tbody>
-                    </table>
+                <div class="flex-grow w-full h-[300px] relative">
+                    <canvas id="graficoEvolucao"></canvas>
                 </div>
             </div>
 
-            <div class="glass p-6 rounded-2xl shadow-2xl">
-                <h3 class="font-bold mb-6 text-center text-slate-300">Resumo Visual</h3>
-                <canvas id="graficoFinanceiro"></canvas>
-                <div class="mt-8 space-y-3">
-                    <div class="flex justify-between text-sm">
-                        <span class="text-slate-400 italic">Planilha Conectada:</span>
-                        <span class="text-emerald-400 font-bold">Ativa</span>
-                    </div>
+            <div class="glass-panel rounded-2xl overflow-hidden flex flex-col">
+                <div class="p-6 border-b border-slate-700/50 bg-slate-800/30">
+                    <h3 class="font-semibold text-lg flex items-center gap-2">
+                        <i class="ph ph-bank text-indigo-400"></i> Detalhamento Mensal
+                    </h3>
+                </div>
+                <div class="p-0 overflow-y-auto max-h-[300px]">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-900/80 text-slate-400 sticky top-0">
+                            <tr>
+                                <th class="px-6 py-3 font-medium">Mês</th>
+                                <th class="px-6 py-3 font-medium text-right">Entrada</th>
+                                <th class="px-6 py-3 font-medium text-right">Saída</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpoTabela" class="divide-y divide-slate-800/50">
+                            </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // SUA URL DO SHEET.BEST JÁ ESTÁ AQUI:
+        // --- CONFIGURAÇÃO ---
         const MINHA_URL_API = "https://api.sheetbest.com/sheets/5b629142-f077-44bc-ab30-20747db77f0a";
+        
+        let dadosGlobais = [];
+        let graficoInstancia = null;
 
-        let chartInstancia = null;
+        // Função para limpar e converter os valores monetários do Excel para Número
+        function converterMoedaParaNumero(valor) {
+            if (!valor) return 0;
+            if (typeof valor === 'number') return valor;
+            
+            // Remove R$, espaços, pontos (milhares) e troca vírgula por ponto
+            let valorLimpo = valor.toString()
+                .replace(/R\$\s*/g, '')
+                .replace(/\./g, '')
+                .replace(',', '.')
+                .trim();
+            
+            // Lida com valores negativos no formato "-R$ 109,00"
+            if (valorLimpo.startsWith('-')) {
+                valorLimpo = valorLimpo.replace('-', '');
+                return -(parseFloat(valorLimpo) || 0);
+            }
+            return parseFloat(valorLimpo) || 0;
+        }
 
         async function buscarDados() {
-            const btn = document.getElementById('btnSync');
-            const statusLabel = document.getElementById('status');
+            const statusText = document.getElementById('status-text');
+            const statusDot = document.getElementById('status-dot');
+            const btnSync = document.getElementById('btnSync');
             
-            btn.innerText = "Sincronizando...";
-            btn.classList.add('opacity-50');
-            statusLabel.innerText = "Atualizando...";
+            statusText.innerText = "Sincronizando...";
+            statusDot.className = "w-2 h-2 rounded-full bg-amber-500 animate-pulse";
+            btnSync.classList.add('opacity-70', 'cursor-not-allowed');
 
             try {
                 const response = await fetch(MINHA_URL_API);
-                const dados = await response.json();
+                if (!response.ok) throw new Error("Erro na rede");
+                const dadosBrutos = await response.json();
                 
-                let html = "";
-                let entradas = 0;
-                let saidas = 0;
+                // Filtra linhas vazias ou "Dasboard" nulo, e ignora a linha que só tem os nomes dos bancos
+                dadosGlobais = dadosBrutos.filter(item => 
+                    item.Dasboard && 
+                    item.Dasboard.trim() !== '' &&
+                    !item.Dasboard.toLowerCase().includes('nubank') && // Ignora a linha de cabeçalho secundária se ela for lida errada
+                    item.Entrada // Garante que tem dados
+                );
 
-                dados.forEach(item => {
-                    // Limpeza de valores (remove R$, pontos e ajusta vírgula)
-                    const valorStr = item.Valor ? item.Valor.toString() : "0";
-                    const valorLimpo = valorStr.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
-                    const valorNum = parseFloat(valorLimpo) || 0;
-
-                    if (valorNum > 0) entradas += valorNum;
-                    else saidas += Math.abs(valorNum);
-
-                    // Pega o nome das colunas exatas que estão na sua planilha
-                    const dataItem = item.Data || item.DATA || '---';
-                    const descItem = item.Descricao || item.Categoria || item.DESCRIÇÃO || item.CATEGORIA || 'Sem descrição';
-
-                    html += `
-                        <tr class="hover:bg-slate-700/20 transition-colors">
-                            <td class="px-6 py-4 text-sm text-slate-400">${dataItem}</td>
-                            <td class="px-6 py-4 text-sm font-semibold">${descItem}</td>
-                            <td class="px-6 py-4 text-right font-black ${valorNum > 0 ? 'text-emerald-400' : 'text-rose-400'}">
-                                ${valorNum > 0 ? '+' : ''} R$ ${valorNum.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
-                            </td>
-                        </tr>
-                    `;
-                });
-
-                document.getElementById('corpoTabela').innerHTML = html;
-                document.getElementById('totalEntradas').innerText = `R$ ${entradas.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-                document.getElementById('totalSaidas').innerText = `R$ ${saidas.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-                document.getElementById('saldoTotal').innerText = `R$ ${(entradas - saidas).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+                popularFiltroMeses(dadosGlobais);
+                atualizarDashboardParaMes("Todos"); // Inicia mostrando tudo
                 
-                atualizarGrafico(entradas, saidas);
-                statusLabel.innerText = "Online";
+                renderizarTabelaCompleta(dadosGlobais);
+                renderizarGrafico(dadosGlobais);
 
+                statusText.innerText = "Conectado e Atualizado";
+                statusDot.className = "w-2 h-2 rounded-full bg-emerald-500";
             } catch (error) {
-                console.error("Erro na busca:", error);
-                statusLabel.innerText = "Erro de conexão";
+                console.error("Erro:", error);
+                statusText.innerText = "Erro ao conectar. Verifique a API.";
+                statusDot.className = "w-2 h-2 rounded-full bg-rose-500";
             } finally {
-                btn.innerText = "Atualizar Dados ↻";
-                btn.classList.remove('opacity-50');
+                btnSync.classList.remove('opacity-70', 'cursor-not-allowed');
             }
         }
 
-        function atualizarGrafico(ent, sai) {
-            const ctx = document.getElementById('graficoFinanceiro').getContext('2d');
+        function popularFiltroMeses(dados) {
+            const select = document.getElementById('filtroMes');
+            // Limpa opções antigas, exceto "Todos"
+            select.innerHTML = '<option value="Todos">Visão Geral (Ano)</option>';
             
-            if (chartInstancia) {
-                chartInstancia.destroy();
-            }
-
-            chartInstancia = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Entradas', 'Saídas'],
-                    datasets: [{
-                        data: [ent, sai],
-                        backgroundColor: ['#10b981', '#f43f5e'],
-                        hoverOffset: 10,
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 12 } } }
-                    },
-                    cutout: '80%'
+            dados.forEach(item => {
+                const mes = item.Dasboard.trim();
+                if(mes) {
+                    const option = document.createElement('option');
+                    option.value = mes;
+                    option.textContent = mes;
+                    select.appendChild(option);
                 }
             });
         }
 
-        // Carrega os dados automaticamente ao abrir a página
+        function atualizarDashboardParaMes(mesSelecionado) {
+            let totalEnt = 0;
+            let totalSai = 0;
+            let totalLiq = 0;
+
+            if (mesSelecionado === "Todos") {
+                // Soma tudo
+                dadosGlobais.forEach(item => {
+                    totalEnt += converterMoedaParaNumero(item.Entrada);
+                    totalSai += converterMoedaParaNumero(item.Saída);
+                    // O líquido recalculado garante precisão, ou soma a coluna 'líquido'
+                });
+                totalLiq = totalEnt - totalSai;
+            } else {
+                // Pega só o mês selecionado
+                const dadosMes = dadosGlobais.find(item => item.Dasboard.trim() === mesSelecionado);
+                if (dadosMes) {
+                    totalEnt = converterMoedaParaNumero(dadosMes.Entrada);
+                    totalSai = converterMoedaParaNumero(dadosMes.Saída);
+                    totalLiq = converterMoedaParaNumero(dadosMes.líquido);
+                }
+            }
+
+            animarValor('totalEntradas', totalEnt);
+            animarValor('totalSaidas', totalSai);
+            animarValor('saldoTotal', totalLiq);
+        }
+
+        function renderizarTabelaCompleta(dados) {
+            let html = "";
+            dados.forEach(item => {
+                const mes = item.Dasboard;
+                const ent = converterMoedaParaNumero(item.Entrada);
+                const sai = converterMoedaParaNumero(item.Saída);
+                
+                html += `
+                    <tr class="hover:bg-slate-800/50 transition-colors">
+                        <td class="px-6 py-4 font-medium text-slate-300">${mes}</td>
+                        <td class="px-6 py-4 text-right text-emerald-400 font-medium">R$ ${ent.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                        <td class="px-6 py-4 text-right text-rose-400 font-medium">R$ ${sai.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('corpoTabela').innerHTML = html;
+        }
+
+        function renderizarGrafico(dados) {
+            const ctx = document.getElementById('graficoEvolucao').getContext('2d');
+            if (graficoInstancia) graficoInstancia.destroy();
+
+            const labels = dados.map(item => item.Dasboard);
+            const dadosEntradas = dados.map(item => converterMoedaParaNumero(item.Entrada));
+            const dadosSaidas = dados.map(item => converterMoedaParaNumero(item.Saída));
+
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.font.family = "'Outfit', sans-serif";
+
+            graficoInstancia = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Entradas',
+                            data: dadosEntradas,
+                            backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                            borderRadius: 6,
+                            borderSkipped: false,
+                        },
+                        {
+                            label: 'Saídas',
+                            data: dadosSaidas,
+                            backgroundColor: 'rgba(244, 63, 94, 0.8)',
+                            borderRadius: 6,
+                            borderSkipped: false,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8 } },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleFont: { size: 14, family: "'Outfit', sans-serif" },
+                            bodyFont: { size: 13, family: "'Outfit', sans-serif" },
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false, drawBorder: false } },
+                        y: {
+                            grid: { color: 'rgba(148, 163, 184, 0.1)', drawBorder: false },
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + (value / 1000) + 'k'; // Formato abreviado no eixo Y
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Função para formatar moeda diretamente (sem animação complexa para não pesar)
+        function animarValor(idElemento, valorFinal) {
+            const elemento = document.getElementById(idElemento);
+            const formatado = valorFinal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            
+            // Tratamento especial para cor do saldo
+            if(idElemento === 'saldoTotal') {
+                if(valorFinal < 0) {
+                    elemento.className = "text-4xl font-bold text-rose-500";
+                    elemento.innerText = `- R$ ${Math.abs(valorFinal).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+                } else {
+                    elemento.className = "text-4xl font-bold text-indigo-300";
+                    elemento.innerText = `R$ ${formatado}`;
+                }
+            } else {
+                elemento.innerText = `R$ ${formatado}`;
+            }
+        }
+
+        // Inicia
         buscarDados();
     </script>
 </body>
