@@ -20,7 +20,7 @@
                 <h1 class="text-3xl font-bold text-emerald-400 flex items-center gap-2">
                     <span class="p-2 bg-emerald-500/10 rounded-lg">💰</span> Meu Financeiro
                 </h1>
-                <p class="text-slate-400 text-sm mt-1">Sincronizado em tempo real com OneDrive</p>
+                <p class="text-slate-400 text-sm mt-1">Sincronizado em tempo real com Planilhas Google</p>
             </div>
             <button onclick="buscarDados()" id="btnSync" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-emerald-900/20">
                 Atualizar Dados ↻
@@ -68,8 +68,8 @@
                 <canvas id="graficoFinanceiro"></canvas>
                 <div class="mt-8 space-y-3">
                     <div class="flex justify-between text-sm">
-                        <span class="text-slate-400 italic">Planilha OneDrive:</span>
-                        <span class="text-emerald-400 font-bold">Conectada</span>
+                        <span class="text-slate-400 italic">Planilha Conectada:</span>
+                        <span class="text-emerald-400 font-bold">Ativa</span>
                     </div>
                 </div>
             </div>
@@ -77,9 +77,8 @@
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO IMPORTANTE ---
-        // Substitua abaixo pela URL que você pegou no Sheet.best
-        const MINHA_URL_API = "COLE_AQUI_SUA_URL_DO_SHEET_BEST";
+        // SUA URL DO SHEET.BEST JÁ ESTÁ AQUI:
+        const MINHA_URL_API = "https://api.sheetbest.com/sheets/5b629142-f077-44bc-ab30-20747db77f0a";
 
         let chartInstancia = null;
 
@@ -100,18 +99,22 @@
                 let saidas = 0;
 
                 dados.forEach(item => {
-                    // Limpeza de valores para garantir que o JS entenda como número
+                    // Limpeza de valores (remove R$, pontos e ajusta vírgula)
                     const valorStr = item.Valor ? item.Valor.toString() : "0";
-                    const valorLimpo = valorStr.replace('R$', '').replace('.', '').replace(',', '.').trim();
+                    const valorLimpo = valorStr.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
                     const valorNum = parseFloat(valorLimpo) || 0;
 
                     if (valorNum > 0) entradas += valorNum;
                     else saidas += Math.abs(valorNum);
 
+                    // Pega o nome das colunas exatas que estão na sua planilha
+                    const dataItem = item.Data || item.DATA || '---';
+                    const descItem = item.Descricao || item.Categoria || item.DESCRIÇÃO || item.CATEGORIA || 'Sem descrição';
+
                     html += `
                         <tr class="hover:bg-slate-700/20 transition-colors">
-                            <td class="px-6 py-4 text-sm text-slate-400">${item.Data || '---'}</td>
-                            <td class="px-6 py-4 text-sm font-semibold">${item.Descricao || item.Categoria || 'Sem descrição'}</td>
+                            <td class="px-6 py-4 text-sm text-slate-400">${dataItem}</td>
+                            <td class="px-6 py-4 text-sm font-semibold">${descItem}</td>
                             <td class="px-6 py-4 text-right font-black ${valorNum > 0 ? 'text-emerald-400' : 'text-rose-400'}">
                                 ${valorNum > 0 ? '+' : ''} R$ ${valorNum.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                             </td>
@@ -164,12 +167,7 @@
         }
 
         // Carrega os dados automaticamente ao abrir a página
-        if (MINHA_URL_API !== "COLE_AQUI_SUA_URL_DO_SHEET_BEST") {
-            buscarDados();
-        } else {
-            document.getElementById('status').innerText = "Configuração pendente";
-            document.getElementById('corpoTabela').innerHTML = "<tr><td colspan='3' class='p-10 text-center text-slate-500'>Por favor, insira sua URL do Sheet.best no código para ver seus dados.</td></tr>";
-        }
+        buscarDados();
     </script>
 </body>
 </html>
