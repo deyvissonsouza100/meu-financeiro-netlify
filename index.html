@@ -13,7 +13,6 @@
         .glass-panel { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
         .card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
         .card-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); }
-        /* Custom scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
@@ -43,7 +42,7 @@
                 <div class="relative w-full sm:w-48">
                     <select id="filtroMes" onchange="atualizarDashboardParaMes(this.value)" class="w-full appearance-none bg-slate-800/80 border border-slate-700 text-slate-200 py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium cursor-pointer transition-colors">
                         <option value="Todos">Visão Geral (Ano)</option>
-                        </select>
+                    </select>
                     <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                 </div>
                 
@@ -55,22 +54,16 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="glass-panel p-6 rounded-2xl card-hover relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <i class="ph-fill ph-trend-up text-6xl text-emerald-500"></i>
-                </div>
                 <div class="flex justify-between items-start mb-4">
-                    <p class="text-slate-400 text-sm font-semibold tracking-wide uppercase">Entradas</p>
+                    <p class="text-slate-400 text-sm font-semibold tracking-wide uppercase">Entradas (Geral)</p>
                     <span class="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-lg"><i class="ph ph-arrow-up-right"></i></span>
                 </div>
                 <h2 id="totalEntradas" class="text-4xl font-bold text-slate-100">R$ 0,00</h2>
             </div>
 
             <div class="glass-panel p-6 rounded-2xl card-hover relative overflow-hidden group">
-                 <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <i class="ph-fill ph-trend-down text-6xl text-rose-500"></i>
-                </div>
                 <div class="flex justify-between items-start mb-4">
-                    <p class="text-slate-400 text-sm font-semibold tracking-wide uppercase">Saídas</p>
+                    <p class="text-slate-400 text-sm font-semibold tracking-wide uppercase">Saídas (Geral)</p>
                     <span class="p-1.5 bg-rose-500/10 text-rose-400 rounded-lg"><i class="ph ph-arrow-down-left"></i></span>
                 </div>
                 <h2 id="totalSaidas" class="text-4xl font-bold text-rose-400">R$ 0,00</h2>
@@ -85,13 +78,28 @@
             </div>
         </div>
 
+        <h3 class="font-semibold text-lg text-slate-300 mb-4 flex items-center gap-2"><i class="ph ph-credit-card text-purple-400"></i> Faturas de Cartão</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="glass-panel p-5 rounded-xl border-l-4 border-purple-500 flex justify-between items-center bg-gradient-to-r from-purple-900/20 to-transparent">
+                <div>
+                    <p class="text-slate-400 text-xs font-bold uppercase mb-1">Nubank</p>
+                    <h3 id="faturaNubank" class="text-2xl font-bold text-purple-300">R$ 0,00</h3>
+                </div>
+                <i class="ph ph-bank text-3xl text-purple-500/50"></i>
+            </div>
+            <div class="glass-panel p-5 rounded-xl border-l-4 border-red-500 flex justify-between items-center bg-gradient-to-r from-red-900/20 to-transparent">
+                <div>
+                    <p class="text-slate-400 text-xs font-bold uppercase mb-1">Santander</p>
+                    <h3 id="faturaSantander" class="text-2xl font-bold text-red-300">R$ 0,00</h3>
+                </div>
+                <i class="ph ph-bank text-3xl text-red-500/50"></i>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-            
             <div class="xl:col-span-2 glass-panel p-6 rounded-2xl flex flex-col">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-semibold text-lg flex items-center gap-2">
-                        <i class="ph ph-chart-bar text-indigo-400"></i> Evolução Mensal
-                    </h3>
+                    <h3 class="font-semibold text-lg flex items-center gap-2"><i class="ph ph-chart-bar text-indigo-400"></i> Evolução Mensal</h3>
                 </div>
                 <div class="flex-grow w-full h-[300px] relative">
                     <canvas id="graficoEvolucao"></canvas>
@@ -100,9 +108,7 @@
 
             <div class="glass-panel rounded-2xl overflow-hidden flex flex-col">
                 <div class="p-6 border-b border-slate-700/50 bg-slate-800/30">
-                    <h3 class="font-semibold text-lg flex items-center gap-2">
-                        <i class="ph ph-bank text-indigo-400"></i> Detalhamento Mensal
-                    </h3>
+                    <h3 class="font-semibold text-lg flex items-center gap-2"><i class="ph ph-list-dashes text-indigo-400"></i> Detalhamento Geral</h3>
                 </div>
                 <div class="p-0 overflow-y-auto max-h-[300px]">
                     <table class="w-full text-left text-sm">
@@ -122,25 +128,14 @@
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO ---
         const MINHA_URL_API = "https://api.sheetbest.com/sheets/5b629142-f077-44bc-ab30-20747db77f0a";
-        
         let dadosGlobais = [];
         let graficoInstancia = null;
 
-        // Função para limpar e converter os valores monetários do Excel para Número
         function converterMoedaParaNumero(valor) {
             if (!valor) return 0;
             if (typeof valor === 'number') return valor;
-            
-            // Remove R$, espaços, pontos (milhares) e troca vírgula por ponto
-            let valorLimpo = valor.toString()
-                .replace(/R\$\s*/g, '')
-                .replace(/\./g, '')
-                .replace(',', '.')
-                .trim();
-            
-            // Lida com valores negativos no formato "-R$ 109,00"
+            let valorLimpo = valor.toString().replace(/R\$\s*/g, '').replace(/\./g, '').replace(',', '.').trim();
             if (valorLimpo.startsWith('-')) {
                 valorLimpo = valorLimpo.replace('-', '');
                 return -(parseFloat(valorLimpo) || 0);
@@ -159,19 +154,22 @@
 
             try {
                 const response = await fetch(MINHA_URL_API);
-                if (!response.ok) throw new Error("Erro na rede");
+                if (!response.ok) throw new Error("Erro na requisição. Verifique se a aba correta é a primeira.");
                 const dadosBrutos = await response.json();
                 
-                // Filtra linhas vazias ou "Dasboard" nulo, e ignora a linha que só tem os nomes dos bancos
+                // Filtra para pegar apenas as linhas que têm o nome do mês preenchido na coluna 'Mes'
                 dadosGlobais = dadosBrutos.filter(item => 
-                    item.Dasboard && 
-                    item.Dasboard.trim() !== '' &&
-                    !item.Dasboard.toLowerCase().includes('nubank') && // Ignora a linha de cabeçalho secundária se ela for lida errada
-                    item.Entrada // Garante que tem dados
+                    item.Mes && 
+                    item.Mes.trim() !== '' &&
+                    !item.Mes.toLowerCase().includes('total') // Ignora a linha de "Total Ano" se houver
                 );
 
+                if(dadosGlobais.length === 0) {
+                     throw new Error("Nenhum dado encontrado. Verifique se a coluna A se chama 'Mes' na primeira linha.");
+                }
+
                 popularFiltroMeses(dadosGlobais);
-                atualizarDashboardParaMes("Todos"); // Inicia mostrando tudo
+                atualizarDashboardParaMes("Todos"); 
                 
                 renderizarTabelaCompleta(dadosGlobais);
                 renderizarGrafico(dadosGlobais);
@@ -179,8 +177,8 @@
                 statusText.innerText = "Conectado e Atualizado";
                 statusDot.className = "w-2 h-2 rounded-full bg-emerald-500";
             } catch (error) {
-                console.error("Erro:", error);
-                statusText.innerText = "Erro ao conectar. Verifique a API.";
+                console.error("Erro completo:", error);
+                statusText.innerText = error.message.includes("Nenhum dado") ? "Erro: Nomes das colunas incorretos." : "Erro ao conectar à API.";
                 statusDot.className = "w-2 h-2 rounded-full bg-rose-500";
             } finally {
                 btnSync.classList.remove('opacity-70', 'cursor-not-allowed');
@@ -189,11 +187,9 @@
 
         function popularFiltroMeses(dados) {
             const select = document.getElementById('filtroMes');
-            // Limpa opções antigas, exceto "Todos"
             select.innerHTML = '<option value="Todos">Visão Geral (Ano)</option>';
-            
             dados.forEach(item => {
-                const mes = item.Dasboard.trim();
+                const mes = item.Mes.trim();
                 if(mes) {
                     const option = document.createElement('option');
                     option.value = mes;
@@ -204,43 +200,42 @@
         }
 
         function atualizarDashboardParaMes(mesSelecionado) {
-            let totalEnt = 0;
-            let totalSai = 0;
-            let totalLiq = 0;
+            let totalEnt = 0, totalSai = 0, totalLiq = 0, faturaNu = 0, faturaSan = 0;
 
             if (mesSelecionado === "Todos") {
-                // Soma tudo
                 dadosGlobais.forEach(item => {
-                    totalEnt += converterMoedaParaNumero(item.Entrada);
-                    totalSai += converterMoedaParaNumero(item.Saída);
-                    // O líquido recalculado garante precisão, ou soma a coluna 'líquido'
+                    totalEnt += converterMoedaParaNumero(item.EntradaGeral);
+                    totalSai += converterMoedaParaNumero(item.SaidaGeral);
+                    faturaNu += converterMoedaParaNumero(item.SaidaNubank);
+                    faturaSan += converterMoedaParaNumero(item.SaidaSantander);
                 });
                 totalLiq = totalEnt - totalSai;
             } else {
-                // Pega só o mês selecionado
-                const dadosMes = dadosGlobais.find(item => item.Dasboard.trim() === mesSelecionado);
+                const dadosMes = dadosGlobais.find(item => item.Mes.trim() === mesSelecionado);
                 if (dadosMes) {
-                    totalEnt = converterMoedaParaNumero(dadosMes.Entrada);
-                    totalSai = converterMoedaParaNumero(dadosMes.Saída);
-                    totalLiq = converterMoedaParaNumero(dadosMes.líquido);
+                    totalEnt = converterMoedaParaNumero(dadosMes.EntradaGeral);
+                    totalSai = converterMoedaParaNumero(dadosMes.SaidaGeral);
+                    totalLiq = converterMoedaParaNumero(dadosMes.Liquido);
+                    faturaNu = converterMoedaParaNumero(dadosMes.SaidaNubank);
+                    faturaSan = converterMoedaParaNumero(dadosMes.SaidaSantander);
                 }
             }
 
             animarValor('totalEntradas', totalEnt);
             animarValor('totalSaidas', totalSai);
             animarValor('saldoTotal', totalLiq);
+            animarValor('faturaNubank', faturaNu, true); // true para formatação simples
+            animarValor('faturaSantander', faturaSan, true);
         }
 
         function renderizarTabelaCompleta(dados) {
             let html = "";
             dados.forEach(item => {
-                const mes = item.Dasboard;
-                const ent = converterMoedaParaNumero(item.Entrada);
-                const sai = converterMoedaParaNumero(item.Saída);
-                
+                const ent = converterMoedaParaNumero(item.EntradaGeral);
+                const sai = converterMoedaParaNumero(item.SaidaGeral);
                 html += `
                     <tr class="hover:bg-slate-800/50 transition-colors">
-                        <td class="px-6 py-4 font-medium text-slate-300">${mes}</td>
+                        <td class="px-6 py-4 font-medium text-slate-300">${item.Mes}</td>
                         <td class="px-6 py-4 text-right text-emerald-400 font-medium">R$ ${ent.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                         <td class="px-6 py-4 text-right text-rose-400 font-medium">R$ ${sai.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                     </tr>
@@ -253,9 +248,9 @@
             const ctx = document.getElementById('graficoEvolucao').getContext('2d');
             if (graficoInstancia) graficoInstancia.destroy();
 
-            const labels = dados.map(item => item.Dasboard);
-            const dadosEntradas = dados.map(item => converterMoedaParaNumero(item.Entrada));
-            const dadosSaidas = dados.map(item => converterMoedaParaNumero(item.Saída));
+            const labels = dados.map(item => item.Mes);
+            const dadosEntradas = dados.map(item => converterMoedaParaNumero(item.EntradaGeral));
+            const dadosSaidas = dados.map(item => converterMoedaParaNumero(item.SaidaGeral));
 
             Chart.defaults.color = '#94a3b8';
             Chart.defaults.font.family = "'Outfit', sans-serif";
@@ -265,71 +260,29 @@
                 data: {
                     labels: labels,
                     datasets: [
-                        {
-                            label: 'Entradas',
-                            data: dadosEntradas,
-                            backgroundColor: 'rgba(16, 185, 129, 0.8)',
-                            borderRadius: 6,
-                            borderSkipped: false,
-                        },
-                        {
-                            label: 'Saídas',
-                            data: dadosSaidas,
-                            backgroundColor: 'rgba(244, 63, 94, 0.8)',
-                            borderRadius: 6,
-                            borderSkipped: false,
-                        }
+                        { label: 'Entradas', data: dadosEntradas, backgroundColor: 'rgba(16, 185, 129, 0.8)', borderRadius: 4 },
+                        { label: 'Saídas', data: dadosSaidas, backgroundColor: 'rgba(244, 63, 94, 0.8)', borderRadius: 4 }
                     ]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8 } },
-                        tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                            titleFont: { size: 14, family: "'Outfit', sans-serif" },
-                            bodyFont: { size: 13, family: "'Outfit', sans-serif" },
-                            padding: 12,
-                            cornerRadius: 8,
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) label += ': ';
-                                    if (context.parsed.y !== null) {
-                                        label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed.y);
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
-                    },
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } } },
                     scales: {
-                        x: { grid: { display: false, drawBorder: false } },
-                        y: {
-                            grid: { color: 'rgba(148, 163, 184, 0.1)', drawBorder: false },
-                            ticks: {
-                                callback: function(value) {
-                                    return 'R$ ' + (value / 1000) + 'k'; // Formato abreviado no eixo Y
-                                }
-                            }
-                        }
+                        x: { grid: { display: false } },
+                        y: { grid: { color: 'rgba(148, 163, 184, 0.1)' }, ticks: { callback: v => 'R$ ' + (v/1000) + 'k' } }
                     }
                 }
             });
         }
 
-        // Função para formatar moeda diretamente (sem animação complexa para não pesar)
-        function animarValor(idElemento, valorFinal) {
+        function animarValor(idElemento, valorFinal, formatoSimples = false) {
             const elemento = document.getElementById(idElemento);
-            const formatado = valorFinal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            const formatado = Math.abs(valorFinal).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             
-            // Tratamento especial para cor do saldo
-            if(idElemento === 'saldoTotal') {
+            if(idElemento === 'saldoTotal' && !formatoSimples) {
                 if(valorFinal < 0) {
                     elemento.className = "text-4xl font-bold text-rose-500";
-                    elemento.innerText = `- R$ ${Math.abs(valorFinal).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+                    elemento.innerText = `- R$ ${formatado}`;
                 } else {
                     elemento.className = "text-4xl font-bold text-indigo-300";
                     elemento.innerText = `R$ ${formatado}`;
@@ -339,7 +292,6 @@
             }
         }
 
-        // Inicia
         buscarDados();
     </script>
 </body>
